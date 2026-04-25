@@ -1,0 +1,147 @@
+.dashboard-page {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #111827;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 1.7rem;
+  line-height: 1.2;
+}
+
+.dashboard-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.button {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.button-primary {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.button-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.button-secondary {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.button-secondary:hover:not(:disabled) {
+  background: #d1d5db;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dashboard-summary {
+  margin: 14px 0 0;
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.dashboard-loading {
+  margin: 12px 0 0;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.dashboard-error {
+  margin: 12px 0 0;
+  color: #b91c1c;
+  font-size: 0.9rem;
+}
+
+.dashboard-empty {
+  margin-top: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  background: #ffffff;
+}
+
+.dashboard-empty p {
+  margin: 0;
+  color: #4b5563;
+}
+
+.dashboard-section {
+  margin-top: 22px;
+}
+
+.dashboard-section h2 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  color: #111827;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.stat-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.stat-card--used {
+  border-left: 4px solid #9ca3af;
+}
+
+.stat-card--saved {
+  border-left: 4px solid #16a34a;
+}
+
+.stat-label {
+  margin: 0 0 8px;
+  color: #4b5563;
+  font-size: 0.83rem;
+}
+
+.stat-value {
+  margin: 0;
+  color: #111827;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.stat-unit {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #4b5563;
+}

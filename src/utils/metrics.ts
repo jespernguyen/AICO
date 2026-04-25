@@ -9,6 +9,7 @@ export const CO2_GRAMS_PER_1K_TOKENS = 0.12;
 
 const FALLBACK_CHARS_PER_TOKEN = 4;
 
+//TODO: Add more filler phrases
 const FILLER_PHRASES = [
   "basically",
   "actually",
@@ -26,6 +27,7 @@ const FILLER_PHRASES = [
   "you know",
 ] as const;
 
+//TODO: Add more vague phrases
 const VAGUE_PHRASES = [
   "something",
   "anything",
@@ -39,6 +41,7 @@ const VAGUE_PHRASES = [
   "and so on",
 ] as const;
 
+//TODO: Add more structure keywords
 const STRUCTURE_KEYWORDS = [
   "goal",
   "context",
