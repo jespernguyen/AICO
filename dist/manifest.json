@@ -3,15 +3,22 @@
   "name": "AICO",
   "version": "1.0.0",
   "description": "Analyze and optimize AI prompts.",
-  "permissions": ["storage"],
+  "permissions": [
+    "storage"
+  ],
   "action": {
     "default_popup": "src/popup/index.html"
   },
   "options_page": "src/options/index.html",
   "web_accessible_resources": [
     {
-      "resources": ["src/dashboard/index.html"],
-      "matches": ["<all_urls>"]
+      "matches": [
+        "<all_urls>"
+      ],
+      "resources": [
+        "src/dashboard/index.html"
+      ],
+      "use_dynamic_url": false
     }
   ]
 }
