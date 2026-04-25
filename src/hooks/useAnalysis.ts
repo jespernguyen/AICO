@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { analyzeUsage } from "../utils/ai";
+import { optimizePrompt } from "../utils/ai";
 import type { AnalysisResult } from "../types/analysis";
 
 export function useAnalysis() {
@@ -11,7 +11,7 @@ export function useAnalysis() {
     setLoading(true);
     setError(null);
     try {
-      const data = await analyzeUsage(prompt);
+      const data = await optimizePrompt(prompt);
       setResult(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
