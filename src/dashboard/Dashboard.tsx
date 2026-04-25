@@ -1,9 +1,17 @@
 import React from "react";
+import { createRoot } from "react-dom/client";
+import "../index.css";
 
-export default function Dashboard() {
+function Dashboard() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold">Dashboard</h1>
+    <div className="page-shell">
+      <h1>Dashboard Works!</h1>
     </div>
   );
 }
+
+createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <Dashboard />
+  </React.StrictMode>,
+);

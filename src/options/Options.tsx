@@ -1,9 +1,17 @@
 import React from "react";
+import { createRoot } from "react-dom/client";
+import "../index.css";
 
-export default function Options() {
+function Options() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold">Options</h1>
+    <div className="page-shell">
+      <h1>Options Works!</h1>
     </div>
   );
 }
+
+createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <Options />
+  </React.StrictMode>,
+);
