@@ -1,6 +1,7 @@
 import { getEncoding, type Tiktoken } from "js-tiktoken";
 import nlp from "compromise";
 import type { PromptAnalysis, PromptComparison } from "../types/analysis";
+import { DEFAULT_MODEL, type ModelMetrics } from "../constants/models";
 
 
 // --- ENVIRONMENTAL & COST ESTIMATES ---
@@ -106,7 +107,7 @@ export function countTokens(text: string): number {
 }
 
 
-export function analyzePrompt(text: string): PromptAnalysis {
+export function analyzePrompt(text: string, model: ModelMetrics = DEFAULT_MODEL): PromptAnalysis {
  const rawText = text;
  const doc = nlp(text);
  const words = doc.terms().out('array');
@@ -189,10 +190,10 @@ export function analyzePrompt(text: string): PromptAnalysis {
  );
 
 
- const estimatedCostUsd = (tokenCount / 1_000_000) * ESTIMATED_COST_USD_PER_1M_TOKENS;
- const estimatedEnergyWh = (tokenCount / 1_000) * GLOBAL_AVG_ENERGY_WH_PER_1K_TOKENS;
- const estimatedWaterMl = (tokenCount / 1_000) * GLOBAL_AVG_WATER_ML_PER_1K_TOKENS;
- const estimatedCo2Grams = (tokenCount / 1_000) * GLOBAL_AVG_CO2_GRAMS_PER_1K_TOKENS;
+ const estimatedCostUsd = (tokenCount / 1_000_000) * model.costUsdPer1MTokens;
+ const estimatedEnergyWh = (tokenCount / 1_000) * model.energyWhPer1KTokens;
+ const estimatedWaterMl = (tokenCount / 1_000) * model.waterMlPer1KTokens;
+ const estimatedCo2Grams = (tokenCount / 1_000) * model.co2GramsPer1KTokens;
 
 
  return {
