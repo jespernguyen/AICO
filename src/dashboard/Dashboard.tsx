@@ -1,5 +1,6 @@
 import React from "react";
 import { useStorage } from "../hooks/useStorage";
+import EnvironmentalImpactSection from "./EnvironmentalImpactSection";
 
 type StatTone = "used" | "saved";
 
@@ -116,6 +117,8 @@ export default function Dashboard() {
               />
             </div>
           </section>
+
+          <EnvironmentalImpactSection records={records} />
         </>
       )}
     </main>

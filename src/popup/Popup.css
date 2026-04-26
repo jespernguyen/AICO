@@ -76,6 +76,15 @@
   cursor: not-allowed;
 }
 
+.popup-root button.popup-button-secondary {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.popup-root button.popup-button-secondary:hover:not(:disabled) {
+  background: #d1d5db;
+}
+
 .popup-shell {
   display: flex;
   flex-direction: row;

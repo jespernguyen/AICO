@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "AICO",
   "version": "1.0.0",
-  "description": "Analyze and optimize AI prompts.",
+  "description": "Analyze and optimize AI prompts for productivity and sustainability.",
   "permissions": ["storage", "contextMenus"],
   "action": {
     "default_popup": "src/popup/index.html"
