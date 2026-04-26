@@ -1,5 +1,8 @@
 # AICO — AI Conversation Optimizer
 
+![Alt text](public/mainicon.png)
+
+
 A Chrome extension that analyzes and optimizes your AI prompts for clarity, efficiency, and reduced environmental impact. Get better results from AI while spending less — in tokens, cost, CO₂, and water.
 
 ## Features
@@ -57,13 +60,22 @@ The AICO icon will appear in your Chrome toolbar.
 
 ## Setup
 
-### Add your Gemini API key
+### Get a Gemini API key
 
-1. Click the AICO icon in your toolbar
+1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Sign in with your Google account
+3. Click **Create API key**
+4. Select **Create API key in new project** (or choose an existing Google Cloud project)
+5. Copy the generated API key — save it somewhere safe, you won't be shown it again
+
+### Add your Gemini API key to AICO
+
+1. Click the AICO icon in your Chrome toolbar
 2. Click the **Settings** (gear) icon to open the Options page
-3. Paste your Gemini API key and click **Save**
+3. Paste your API key into the input field
+4. Click **Save**
 
-You can get a free API key at [Google AI Studio](https://aistudio.google.com/app/apikey).
+The key is stored in Chrome's sync storage and will persist across sessions.
 
 ---
 
