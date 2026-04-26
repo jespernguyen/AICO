@@ -1,7 +1,7 @@
 import { getApiKey } from "./storage";
 
 const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+  "https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent";
 
 const OPTIMIZER_SYSTEM_PROMPT = `You are a prompt optimization assistant.
 Given a user's prompt, rewrite it to be clearer, more concise, and more effective for AI models.
@@ -28,8 +28,20 @@ export async function optimizePrompt(prompt: string): Promise<string> {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        system_instruction: { parts: [{ text: OPTIMIZER_SYSTEM_PROMPT }] },
-        contents: [{ parts: [{ text: prompt }] }],
+        contents: [
+          {
+            parts: [
+              {
+                text: `${OPTIMIZER_SYSTEM_PROMPT}
+      
+      User prompt:
+      ${prompt}
+      
+      Return only the optimized prompt text.`,
+              },
+            ],
+          },
+        ],
       }),
     });
   } catch {

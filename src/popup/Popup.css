@@ -1,5 +1,5 @@
 .popup-root {
-  width: 360px;
+  width: 350px;
   min-height: 420px;
   box-sizing: border-box;
   padding: 14px;
@@ -9,6 +9,12 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: #111827;
   background: #f9fafb;
+  transition: width 250ms ease;
+  overflow: hidden;
+}
+
+.popup-root--expanded {
+  width: 750px;
 }
 
 .popup-root h1 {
@@ -59,6 +65,39 @@
   cursor: not-allowed;
 }
 
+.popup-shell {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.popup-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.popup-col--input {
+  flex: 0 0 322px;
+}
+
+.popup-col--output {
+  flex: 0 0 0;
+  width: 0;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+  transition: flex-basis 250ms ease, opacity 200ms ease 100ms;
+}
+
+.popup-root--expanded .popup-col--output {
+  flex: 0 0 372px;
+  width: 372px;
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .popup-warning {
   margin: 0;
   background: #ffedd5;
@@ -81,6 +120,24 @@
   font-size: 0.84rem;
 }
 
+.live-metrics {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+}
+
+.score--good {
+  color: #166534;
+}
+
+.score--ok {
+  color: #92400e;
+}
+
+.score--bad {
+  color: #b91c1c;
+}
+
 .optimized-section {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -99,4 +156,13 @@
   word-break: break-word;
   font-size: 0.84rem;
   color: #1f2937;
+}
+
+.result-metrics {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  background: #ffffff;
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
 }
