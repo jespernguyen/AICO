@@ -59,14 +59,6 @@ const USER_FACING_MODELS: ModelMetrics[] = [
     waterMlPer1KTokens: 2.80,
     co2GramsPer1KTokens: 0.18,
   },
-  {
-    id: "grok-4-1-fast",
-    label: "Grok 4.1 Fast (xAI)",
-    costUsdPer1MTokens: 0.35, // blended from low input/output pricing :contentReference[oaicite:1]{index=1}
-    energyWhPer1KTokens: 0.30,
-    waterMlPer1KTokens: 2.0,
-    co2GramsPer1KTokens: 0.13,
-  }
 ];
 
 function getAverageMetric(

@@ -9,25 +9,6 @@ import type { ModelMetrics } from "../constants/models";
 import { getSelectedModel, saveSelectedModel } from "../utils/storage";
 import type { PromptAnalysis, PromptComparison } from "../types/analysis";
 
-// #region agent log
-fetch("http://127.0.0.1:7827/ingest/8e464713-5bad-45a3-86cc-936ff08489fe", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "X-Debug-Session-Id": "c404d9",
-  },
-  body: JSON.stringify({
-    sessionId: "c404d9",
-    runId: "pre-fix",
-    hypothesisId: "H1",
-    location: "src/popup/Popup.tsx:3",
-    message: "Popup module evaluated",
-    data: { hasRootElement: Boolean(document.getElementById("root")) },
-    timestamp: Date.now(),
-  }),
-}).catch(() => {});
-// #endregion
-
 export default function Popup() {
   const [selectedModel, setSelectedModel] = useState<ModelMetrics>(DEFAULT_MODEL);
   const { compare, loading: analysisLoading, error: analysisError } = useAnalysis(selectedModel);
@@ -69,25 +50,6 @@ export default function Popup() {
   const liveTokens = liveAnalysis?.tokenCount ?? 0;
   const scoreTier = liveScore >= 70 ? "good" : liveScore >= 40 ? "ok" : "bad";
 
-  // #region agent log
-  fetch("http://127.0.0.1:7827/ingest/8e464713-5bad-45a3-86cc-936ff08489fe", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Debug-Session-Id": "c404d9",
-    },
-    body: JSON.stringify({
-      sessionId: "c404d9",
-      runId: "post-fix",
-      hypothesisId: "H6",
-      location: "src/popup/Popup.tsx:33",
-      message: "Popup render state snapshot",
-      data: { hasApiKey, promptLength: promptText.length, hasOptimized: Boolean(optimizedText) },
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {});
-  // #endregion
-
   const handleQuickTrim = () => {
     if (!canOptimize) {
       return;
@@ -113,25 +75,6 @@ export default function Popup() {
     setStatusMessage(null);
     setTokenWarning(null);
 
-    // #region agent log
-    fetch("http://127.0.0.1:7827/ingest/8e464713-5bad-45a3-86cc-936ff08489fe", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "c404d9",
-      },
-      body: JSON.stringify({
-        sessionId: "c404d9",
-        runId: "post-fix",
-        hypothesisId: "H7",
-        location: "src/popup/Popup.tsx:61",
-        message: "Optimize requested",
-        data: { promptLength: trimmedPrompt.length, hasApiKey },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
-
     try {
       const optimized = await optimizePrompt(trimmedPrompt);
       setOptimizedText(optimized);
@@ -153,52 +96,11 @@ export default function Popup() {
         });
       }
 
-      // #region agent log
-      fetch("http://127.0.0.1:7827/ingest/8e464713-5bad-45a3-86cc-936ff08489fe", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Debug-Session-Id": "c404d9",
-        },
-        body: JSON.stringify({
-          sessionId: "c404d9",
-          runId: "post-fix",
-          hypothesisId: "H8",
-          location: "src/popup/Popup.tsx:97",
-          message: "Optimize completed successfully",
-          data: {
-            optimizedLength: optimized.length,
-            comparisonComputed: Boolean(comparisonBundle),
-          },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-      // #endregion
-
       setStatusMessage("Prompt optimized successfully.");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to optimize prompt.";
       setUiError(message);
       setStatusMessage(null);
-
-      // #region agent log
-      fetch("http://127.0.0.1:7827/ingest/8e464713-5bad-45a3-86cc-936ff08489fe", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Debug-Session-Id": "c404d9",
-        },
-        body: JSON.stringify({
-          sessionId: "c404d9",
-          runId: "post-fix",
-          hypothesisId: "H9",
-          location: "src/popup/Popup.tsx:121",
-          message: "Optimize failed",
-          data: { errorMessage: message },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-      // #endregion
     } finally {
       setOptimizing(false);
     }
