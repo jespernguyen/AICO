@@ -261,7 +261,7 @@ export default function Popup() {
             </p>
           )}
 
-          <label htmlFor="model-select">AI Model</label>
+          <label htmlFor="model-select">Which AI are you prompting?</label>
           <select
             id="model-select"
             value={selectedModel.id}

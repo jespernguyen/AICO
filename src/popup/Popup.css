@@ -58,7 +58,7 @@
 
 .popup-root textarea:focus {
   outline: 3px solid #eee;
-  transition: 0.1s;
+  transition: 0.2s;
 }
 
 .popup-root button {
@@ -83,6 +83,18 @@
 
 .popup-root button.popup-button-secondary:hover:not(:disabled) {
   background: #d1d5db;
+}
+
+.popup-root select {
+  padding: 6px;
+  background-color: #fafafa;
+  border-radius: 5px;
+  border: 1px solid #d1d5db;
+}
+
+.popup-root select:focus {
+  outline: 3px solid #eee;
+  transition: 0.2s;
 }
 
 .popup-shell {
