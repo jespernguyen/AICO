@@ -71,7 +71,7 @@ The AICO icon will appear in your Chrome toolbar.
 ### Add your Gemini API key to AICO
 
 1. Click the AICO icon in your Chrome toolbar
-2. Click the **Settings** (gear) icon to open the Options page
+2. Right click on the icon to open the Options page
 3. Paste your API key into the input field
 4. Click **Save**
 
