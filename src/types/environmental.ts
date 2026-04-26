@@ -1,5 +1,6 @@
+import type { ModelMetrics } from "../constants/models";
+
 export interface OptimizationTokenLoad {
-  systemPromptTokens: number;
   originalPromptTokens: number;
   optimizedPromptTokens: number;
 }
@@ -11,17 +12,14 @@ export interface ImpactBreakdown {
 }
 
 export interface OptimizationImpactResult {
-  aico: ImpactBreakdown;
-  baselineAvoided: ImpactBreakdown;
-  net: ImpactBreakdown;
-  hadNetSavings: boolean;
-}
-
-export interface EstimateImpactInput {
-  inputTokens: number;
-  outputTokens: number;
+  originalCost: ImpactBreakdown;
+  optimizedCost: ImpactBreakdown;
+  optimizationCost: ImpactBreakdown;
+  grossSaved: ImpactBreakdown;
+  netSaved: ImpactBreakdown;
 }
 
 export interface CalculateOptimizationImpactInput extends OptimizationTokenLoad {
-  baselineOutputRatio?: number;
+  baselineModel?: ModelMetrics;
+  aicoModel?: ModelMetrics;
 }

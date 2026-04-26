@@ -4,14 +4,6 @@ import type { PromptAnalysis, PromptComparison } from "../types/analysis";
 import { DEFAULT_MODEL, type ModelMetrics } from "../constants/models";
 
 
-// --- ENVIRONMENTAL & COST ESTIMATES ---
-// Updated to reflect realistic industry averages for modern inference (e.g., GPT-4o, Gemini 3.1 Pro)
-export const ESTIMATED_COST_USD_PER_1M_TOKENS = 2.50;
-export const GLOBAL_AVG_ENERGY_WH_PER_1K_TOKENS = 0.40;
-export const GLOBAL_AVG_WATER_ML_PER_1K_TOKENS = 3.0;
-export const GLOBAL_AVG_CO2_GRAMS_PER_1K_TOKENS = 2.5;
-
-
 const FALLBACK_CHARS_PER_TOKEN = 4;
 
 
@@ -77,6 +69,11 @@ let encoderSingleton: Tiktoken | null | undefined;
 
 function clamp(value: number, min: number, max: number): number {
  return Math.min(max, Math.max(min, value));
+}
+
+function capSavingsAtCost(originalCost: number, optimizedCost: number): number {
+  const saved = originalCost - optimizedCost;
+  return Math.min(saved, originalCost);
 }
 
 
@@ -218,19 +215,34 @@ export function comparePromptAnalyses(
  original: PromptAnalysis,
  optimized: PromptAnalysis
 ): PromptComparison {
- const tokensSaved = original.tokenCount - optimized.tokenCount;
+ const tokensSaved = capSavingsAtCost(original.tokenCount, optimized.tokenCount);
+ const percentTokenReduction =
+   original.tokenCount === 0
+     ? 0
+     : clamp((tokensSaved / original.tokenCount) * 100, 0, 100);
 
 
  return {
    originalTokens: original.tokenCount,
    optimizedTokens: optimized.tokenCount,
    tokensSaved,
-   percentTokenReduction:
-     original.tokenCount === 0 ? 0 : (tokensSaved / original.tokenCount) * 100,
+   percentTokenReduction,
    efficiencyImprovement: optimized.efficiencyScore - original.efficiencyScore,
-   costSavedUsd: original.estimatedCostUsd - optimized.estimatedCostUsd,
-   energySavedWh: original.estimatedEnergyWh - optimized.estimatedEnergyWh,
-   waterSavedMl: original.estimatedWaterMl - optimized.estimatedWaterMl,
-   co2SavedGrams: original.estimatedCo2Grams - optimized.estimatedCo2Grams,
+   costSavedUsd: capSavingsAtCost(
+     original.estimatedCostUsd,
+     optimized.estimatedCostUsd
+   ),
+   energySavedWh: capSavingsAtCost(
+     original.estimatedEnergyWh,
+     optimized.estimatedEnergyWh
+   ),
+   waterSavedMl: capSavingsAtCost(
+     original.estimatedWaterMl,
+     optimized.estimatedWaterMl
+   ),
+   co2SavedGrams: capSavingsAtCost(
+     original.estimatedCo2Grams,
+     optimized.estimatedCo2Grams
+   ),
  };
 }
