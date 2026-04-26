@@ -45,7 +45,7 @@ npm install
 npm run build
 ```
 
-This outputs the built extension to the `dist/` folder.
+This outputs the built extension to the `dist/` folder (found in the AICO file directory).
 
 ### 4. Load the extension in Chrome
 
@@ -53,6 +53,8 @@ This outputs the built extension to the `dist/` folder.
 2. Enable **Developer mode** (toggle in the top right)
 3. Click **Load unpacked**
 4. Select the `dist/` folder from this project
+5. Find the extensions icon (puzzle icon)
+6. Navigate to AICO, then press the pin button.
 
 The AICO icon will appear in your Chrome toolbar.
 
@@ -84,10 +86,11 @@ The key is stored in Chrome's sync storage and will persist across sessions.
 1. Click the AICO icon to open the popup
 2. Select the AI model you're targeting from the dropdown
 3. Paste your prompt into the text area — a live efficiency score appears instantly
-4. Click **Optimize** to generate an improved version
-5. Review the rewritten prompt and the savings breakdown (tokens, cost, CO₂, water)
-6. Click **Copy** to copy the optimized prompt
-7. Open the **Dashboard** to view your cumulative impact over time
+4. Use Quick Trim for a fast preliminary optimization, before any API call.
+5. Click **Optimize** to generate an improved version
+6. Review the rewritten prompt and the savings breakdown (tokens, cost, CO₂, water)
+7. Click **Copy** to copy the optimized prompt
+8. Open the **Dashboard** to view your cumulative impact over time
 
 ---
 
