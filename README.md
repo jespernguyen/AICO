@@ -8,6 +8,7 @@ A Chrome extension that analyzes and optimizes your AI prompts for clarity, effi
 ## Features
 
 - **Prompt scoring** — detects filler words, vagueness, repetition, structural gaps, and contradictions
+- **Quick Trim** - quickly trim down on filler words without calling Google Gemini
 - **One-click optimization** — rewrites your prompt using Google Gemini
 - **Per-model metrics** — see real cost, energy, water, and CO₂ estimates for GPT-4o, Claude, Gemini, Llama, DeepSeek, and more
 - **Session dashboard** — tracks your cumulative savings over time
