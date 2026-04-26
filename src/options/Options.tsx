@@ -102,7 +102,18 @@ export default function Options() {
         </p>
 
         <div className="options-field">
-          <label htmlFor="api-key">Gemini API key</label>
+          <div className="options-field-header">
+            <label htmlFor="api-key">Gemini API key</label>
+            <button
+              type="button"
+              className="showhide-button"
+              onClick={() => setShowKey((value) => !value)}
+              aria-pressed={showKey}
+              disabled={busy}
+            >
+              {showKey ? "Hide" : "Show"}
+            </button>
+          </div>
           <input
             id="api-key"
             type={showKey ? "text" : "password"}
@@ -116,15 +127,6 @@ export default function Options() {
         </div>
 
         <div className="button-row">
-          <button
-            type="button"
-            className="button button-secondary"
-            onClick={() => setShowKey((value) => !value)}
-            aria-pressed={showKey}
-            disabled={busy}
-          >
-            {showKey ? "Hide" : "Show"}
-          </button>
           <button
             type="button"
             className="button button-primary"
@@ -144,7 +146,7 @@ export default function Options() {
         </div>
 
         <p id="api-key-help" className="helper-text">
-          You can generate a Gemini API key in{" "}
+          You can generate a Gemini API key for free in{" "}
           <a
             href="https://aistudio.google.com/app/apikey"
             target="_blank"
