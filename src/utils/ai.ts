@@ -3,10 +3,7 @@ import { getApiKey } from "./storage";
 const GEMINI_API_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent";
 
-const OPTIMIZER_SYSTEM_PROMPT = `You are a prompt optimization assistant.
-Given a user's prompt, rewrite it to be clearer, more concise, and more effective for AI models.
-Return only the optimized prompt text.
-Do not include markdown, code fences, explanations, or commentary.`;
+const OPTIMIZER_SYSTEM_PROMPT = `Rewrite with minimum tokens, preserving intent. Strip filler and redundancy. If already optimal, return unchanged. Output only the rewritten prompt — no markdown, fences, or commentary.`;
 
 function stripCodeFences(text: string): string {
   const fenced = text.match(/^```[a-zA-Z0-9_-]*\s*([\s\S]*?)\s*```$/);
@@ -61,6 +58,14 @@ export async function optimizePrompt(prompt: string): Promise<string> {
 
   if (!optimizedPrompt) {
     throw new Error("Gemini returned an empty optimized prompt.");
+  }
+
+  if (optimizedPrompt === prompt.trim()) {
+    throw new Error("Your prompt is already at maximum efficiency — no changes needed.");
+  }
+
+  if (optimizedPrompt.length > prompt.trim().length) {
+    return prompt.trim();
   }
 
   return optimizedPrompt;
