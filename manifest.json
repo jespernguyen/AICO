@@ -17,5 +17,11 @@
       "resources": ["src/dashboard/index.html"],
       "matches": ["<all_urls>"]
     }
-  ]
+  ],
+  "icons": {
+    "16": "public/icons/mainicon.png",
+    "32": "public/icons/mainicon.png",
+    "64": "public/icons/mainicon.png",
+    "128": "public/icons/mainicon.png"
+  }
 }
