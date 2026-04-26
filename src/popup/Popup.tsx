@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useAnalysis } from "../hooks/useAnalysis";
 import { useStorage } from "../hooks/useStorage";
 import { optimizePrompt } from "../utils/ai";
+import { analyzePrompt } from "../utils/metrics";
+import type { PromptAnalysis, PromptComparison } from "../types/analysis";
 
 // #region agent log
 fetch("http://127.0.0.1:7827/ingest/8e464713-5bad-45a3-86cc-936ff08489fe", {
@@ -28,11 +30,26 @@ export default function Popup() {
     useStorage();
   const [promptText, setPromptText] = useState("");
   const [optimizedText, setOptimizedText] = useState("");
+  const [comparisonBundle, setComparisonBundle] = useState<{
+    originalAnalysis: PromptAnalysis;
+    optimizedAnalysis: PromptAnalysis;
+    comparison: PromptComparison;
+  } | null>(null);
   const [uiError, setUiError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [optimizing, setOptimizing] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const isBusy = optimizing || analysisLoading || storageLoading;
+  const canOptimize = promptText.trim().length > 0;
+  const liveAnalysis = useMemo(
+    () => (canOptimize ? analyzePrompt(promptText) : null),
+    [canOptimize, promptText]
+  );
+  const liveScore = liveAnalysis ? Math.round(liveAnalysis.efficiencyScore) : 0;
+  const liveTokens = liveAnalysis?.tokenCount ?? 0;
+  const scoreTier = liveScore >= 70 ? "good" : liveScore >= 40 ? "ok" : "bad";
 
   // #region agent log
   fetch("http://127.0.0.1:7827/ingest/8e464713-5bad-45a3-86cc-936ff08489fe", {
@@ -54,14 +71,16 @@ export default function Popup() {
   // #endregion
 
   const handleOptimize = async () => {
-    const trimmedPrompt = promptText.trim();
-    if (!trimmedPrompt) {
+    if (!canOptimize) {
       setUiError("Please enter a prompt first.");
       setStatusMessage(null);
       return;
     }
 
+    const trimmedPrompt = promptText.trim();
+    setExpanded(true);
     setOptimizing(true);
+    setCopied(false);
     setUiError(null);
     setStatusMessage(null);
 
@@ -90,6 +109,7 @@ export default function Popup() {
       const comparisonBundle = await compare(trimmedPrompt, optimized);
 
       if (comparisonBundle) {
+        setComparisonBundle(comparisonBundle);
         await saveRecord({
           id: crypto.randomUUID(),
           createdAt: Date.now(),
@@ -150,10 +170,40 @@ export default function Popup() {
     }
   };
 
+  const handleCopy = async () => {
+    if (!optimizedText) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(optimizedText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      setUiError("Failed to copy optimized prompt.");
+    }
+  };
+
   const combinedError = uiError ?? analysisError ?? storageError;
+  const optimizedScore = comparisonBundle
+    ? Math.round(comparisonBundle.optimizedAnalysis.efficiencyScore)
+    : 0;
+  const scoreImprovement = comparisonBundle
+    ? Math.round(comparisonBundle.comparison.efficiencyImprovement)
+    : 0;
+  const tokensSaved = comparisonBundle?.comparison.tokensSaved ?? 0;
+  const percentReduction = comparisonBundle
+    ? Math.max(0, comparisonBundle.comparison.percentTokenReduction)
+    : 0;
+  const waterSavedMl = comparisonBundle
+    ? Math.max(0, comparisonBundle.comparison.waterSavedMl)
+    : 0;
+  const co2SavedGrams = comparisonBundle
+    ? Math.max(0, comparisonBundle.comparison.co2SavedGrams)
+    : 0;
 
   return (
-    <main className="popup-root">
+    <main className={`popup-root ${expanded ? "popup-root--expanded" : ""}`}>
       <h1>AICO</h1>
       <p className="popup-subtitle">Analyze and optimize your AI prompts.</p>
 
@@ -163,34 +213,64 @@ export default function Popup() {
         </p>
       )}
 
-      <label htmlFor="prompt-input">Prompt</label>
-      <textarea
-        id="prompt-input"
-        value={promptText}
-        onChange={(event) => setPromptText(event.target.value)}
-        placeholder="Paste your prompt here..."
-        rows={7}
-        disabled={isBusy}
-      />
+      <div className="popup-shell">
+        <section className="popup-col popup-col--input">
+          <label htmlFor="prompt-input">Prompt</label>
+          <textarea
+            id="prompt-input"
+            value={promptText}
+            onChange={(event) => setPromptText(event.target.value)}
+            placeholder="Paste your prompt here..."
+            rows={8}
+            disabled={isBusy}
+          />
 
-      <button type="button" onClick={handleOptimize} disabled={isBusy}>
-        {isBusy ? "Working..." : "Optimize Prompt"}
-      </button>
+          <div id="live-metrics" className="live-metrics" aria-live="polite">
+            <span className={`score--${scoreTier}`}>Score: {liveScore}</span>
+            <span>{liveTokens} tokens</span>
+          </div>
 
-      {statusMessage && (
-        <p className="popup-status" role="status" aria-live="polite">
-          {statusMessage}
-        </p>
-      )}
+          <button
+            type="button"
+            onClick={handleOptimize}
+            disabled={!canOptimize || isBusy}
+          >
+            {isBusy ? "Optimizing..." : "Optimize"}
+          </button>
 
-      {combinedError && <p className="popup-error">{combinedError}</p>}
-
-      {optimizedText && (
-        <section className="optimized-section">
-          <h2>Optimized Prompt</h2>
-          <pre>{optimizedText}</pre>
+          {combinedError && <p className="popup-error">{combinedError}</p>}
         </section>
-      )}
+
+        <aside
+          id="optimized-panel"
+          className="popup-col popup-col--output"
+          aria-hidden={!expanded}
+        >
+          <section className="optimized-section">
+            <h2>Optimized Prompt</h2>
+            <textarea readOnly value={optimizedText} rows={8} />
+          </section>
+
+          <div className="result-metrics">
+            <div>New score: <strong>{optimizedScore}</strong> ({scoreImprovement >= 0 ? "+" : ""}{scoreImprovement})</div>
+            <div>
+              Tokens saved: <strong>{tokensSaved}</strong> ({percentReduction.toFixed(1)}%)
+            </div>
+            <div>Water saved: <strong>{waterSavedMl.toFixed(3)} mL</strong></div>
+            <div>CO2 saved: <strong>{co2SavedGrams.toFixed(4)} g</strong></div>
+          </div>
+
+          <button type="button" onClick={handleCopy} disabled={!optimizedText}>
+            {copied ? "Copied" : "Copy to Clipboard"}
+          </button>
+
+          {statusMessage && (
+            <p className="popup-status" role="status" aria-live="polite">
+              {statusMessage}
+            </p>
+          )}
+        </aside>
+      </div>
     </main>
   );
 }
