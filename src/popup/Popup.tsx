@@ -1,9 +1,12 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useAnalysis } from "../hooks/useAnalysis";
 import { useStorage } from "../hooks/useStorage";
 import { optimizePrompt } from "../utils/ai";
 import { analyzePrompt } from "../utils/metrics";
 import { quickTrim } from "../utils/quickTrim";
+import { DEFAULT_MODEL, MODELS, getModelById } from "../constants/models";
+import type { ModelMetrics } from "../constants/models";
+import { getSelectedModel, saveSelectedModel } from "../utils/storage";
 import type { PromptAnalysis, PromptComparison } from "../types/analysis";
 
 // #region agent log
@@ -26,7 +29,8 @@ fetch("http://127.0.0.1:7827/ingest/8e464713-5bad-45a3-86cc-936ff08489fe", {
 // #endregion
 
 export default function Popup() {
-  const { compare, loading: analysisLoading, error: analysisError } = useAnalysis();
+  const [selectedModel, setSelectedModel] = useState<ModelMetrics>(DEFAULT_MODEL);
+  const { compare, loading: analysisLoading, error: analysisError } = useAnalysis(selectedModel);
   const { saveRecord, loading: storageLoading, error: storageError, hasApiKey } =
     useStorage();
   const [promptText, setPromptText] = useState("");
@@ -43,11 +47,23 @@ export default function Popup() {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => {
+    getSelectedModel().then((id) => {
+      if (id) setSelectedModel(getModelById(id));
+    }).catch(() => {});
+  }, []);
+
+  const handleModelChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const model = getModelById(event.target.value);
+    setSelectedModel(model);
+    void saveSelectedModel(model.id);
+  };
+
   const isBusy = optimizing || analysisLoading || storageLoading;
   const canOptimize = promptText.trim().length > 0;
   const liveAnalysis = useMemo(
-    () => (canOptimize ? analyzePrompt(promptText) : null),
-    [canOptimize, promptText]
+    () => (canOptimize ? analyzePrompt(promptText, selectedModel) : null),
+    [canOptimize, promptText, selectedModel]
   );
   const liveScore = liveAnalysis ? Math.round(liveAnalysis.efficiencyScore) : 0;
   const liveTokens = liveAnalysis?.tokenCount ?? 0;
@@ -244,6 +260,18 @@ export default function Popup() {
               Add your Gemini API key in Options before optimizing.
             </p>
           )}
+
+          <label htmlFor="model-select">AI Model</label>
+          <select
+            id="model-select"
+            value={selectedModel.id}
+            onChange={handleModelChange}
+            disabled={isBusy}
+          >
+            {MODELS.map((m) => (
+              <option key={m.id} value={m.id}>{m.label}</option>
+            ))}
+          </select>
 
           <label htmlFor="prompt-input">Your Prompt</label>
           <textarea

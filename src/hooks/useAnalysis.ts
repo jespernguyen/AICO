@@ -1,8 +1,9 @@
 import { useCallback, useState } from "react";
 import type { PromptAnalysis, PromptComparison } from "../types/analysis";
+import { DEFAULT_MODEL, type ModelMetrics } from "../constants/models";
 import { analyzePrompt, comparePromptAnalyses } from "../utils/metrics";
 
-export function useAnalysis() {
+export function useAnalysis(model: ModelMetrics = DEFAULT_MODEL) {
   const [lastAnalysis, setLastAnalysis] = useState<PromptAnalysis | null>(null);
   const [lastComparison, setLastComparison] = useState<PromptComparison | null>(
     null
@@ -15,7 +16,7 @@ export function useAnalysis() {
     setError(null);
 
     try {
-      const analysis = analyzePrompt(text);
+      const analysis = analyzePrompt(text, model);
       setLastAnalysis(analysis);
       return analysis;
     } catch (err) {
@@ -24,7 +25,7 @@ export function useAnalysis() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [model]);
 
   const compare = useCallback(
     async (originalText: string, optimizedText: string) => {
@@ -32,8 +33,8 @@ export function useAnalysis() {
       setError(null);
 
       try {
-        const originalAnalysis = analyzePrompt(originalText);
-        const optimizedAnalysis = analyzePrompt(optimizedText);
+        const originalAnalysis = analyzePrompt(originalText, model);
+        const optimizedAnalysis = analyzePrompt(optimizedText, model);
         const comparison = comparePromptAnalyses(originalAnalysis, optimizedAnalysis);
 
         setLastAnalysis(optimizedAnalysis);
@@ -47,7 +48,7 @@ export function useAnalysis() {
         setLoading(false);
       }
     },
-    []
+    [model]
   );
 
   return { analyze, compare, lastAnalysis, lastComparison, loading, error };

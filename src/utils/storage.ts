@@ -2,9 +2,11 @@ import type { AggregateStats, AnalysisRecord } from "../types/analysis";
 
 export const STORAGE_KEY = "aico:analysisRecords";
 export const API_KEY_STORAGE_KEY = "aico:geminiApiKey";
+export const SELECTED_MODEL_KEY = "aico:selectedModel";
 
 let inMemoryRecords: AnalysisRecord[] = [];
 let inMemoryApiKey: string | null = null;
+let inMemorySelectedModel: string | null = null;
 
 function hasChromeStorage(): boolean {
   return (
@@ -67,6 +69,9 @@ function syncStorageGet<T>(key: string): Promise<T | undefined> {
     if (key === API_KEY_STORAGE_KEY) {
       return Promise.resolve(inMemoryApiKey as T | undefined);
     }
+    if (key === SELECTED_MODEL_KEY) {
+      return Promise.resolve(inMemorySelectedModel as T | undefined);
+    }
     return Promise.resolve(undefined);
   }
 
@@ -86,6 +91,8 @@ function syncStorageSet<T>(key: string, value: T): Promise<void> {
   if (!hasChromeSyncStorage()) {
     if (key === API_KEY_STORAGE_KEY) {
       inMemoryApiKey = value as string;
+    } else if (key === SELECTED_MODEL_KEY) {
+      inMemorySelectedModel = value as string;
     }
     return Promise.resolve();
   }
@@ -153,6 +160,15 @@ export async function saveApiKey(key: string): Promise<void> {
 
 export async function removeApiKey(): Promise<void> {
   await syncStorageRemove(API_KEY_STORAGE_KEY);
+}
+
+export async function getSelectedModel(): Promise<string | null> {
+  const value = await syncStorageGet<string>(SELECTED_MODEL_KEY);
+  return typeof value === "string" ? value : null;
+}
+
+export async function saveSelectedModel(modelId: string): Promise<void> {
+  await syncStorageSet(SELECTED_MODEL_KEY, modelId);
 }
 
 export async function getAggregateStats(): Promise<AggregateStats> {
