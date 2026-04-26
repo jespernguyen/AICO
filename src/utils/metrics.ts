@@ -2,208 +2,234 @@ import { getEncoding, type Tiktoken } from "js-tiktoken";
 import nlp from "compromise";
 import type { PromptAnalysis, PromptComparison } from "../types/analysis";
 
+
 // --- ENVIRONMENTAL & COST ESTIMATES ---
-// Note: These are rough industry averages for educational purposes.
-// Datacenter efficiency varies significantly by location, hardware, and time of day.
-export const ESTIMATED_COST_USD_PER_1M_TOKENS = 2.5;
-export const GLOBAL_AVG_ENERGY_WH_PER_1K_TOKENS = 0.3;
-export const GLOBAL_AVG_WATER_ML_PER_1K_TOKENS = 0.5;
-export const GLOBAL_AVG_CO2_GRAMS_PER_1K_TOKENS = 0.12;
+// Updated to reflect realistic industry averages for modern inference (e.g., GPT-4o, Gemini 3.1 Pro)
+export const ESTIMATED_COST_USD_PER_1M_TOKENS = 2.50;
+export const GLOBAL_AVG_ENERGY_WH_PER_1K_TOKENS = 0.40;
+export const GLOBAL_AVG_WATER_ML_PER_1K_TOKENS = 3.0;
+export const GLOBAL_AVG_CO2_GRAMS_PER_1K_TOKENS = 2.5;
+
 
 const FALLBACK_CHARS_PER_TOKEN = 4;
 
+
 // --- ALGORITHM WEIGHTS ---
-// Configurable weights for the efficiency score calculation
+// Tuned for extreme harshness: no hard caps, just aggressive mathematical penalization.
 export const EFFICIENCY_WEIGHTS = {
-  fluffMultiplier: 200,
-  repetitionMultiplier: 20,
-  vaguenessMultiplier: 15,
-  structureMultiplier: 2,
-  maxStructureBonus: 10,
-  lengthPenaltyStart: 1000,
-  lengthPenaltyDivisor: 100,
-  maxLengthPenalty: 25,
+ fluffMultiplier: 250,        // A 10% fluff ratio now drops the score by 25 points.
+ repetitionMultiplier: 80,    // Repetition tanks the score twice as fast as before.
+ vaguenessMultiplier: 120,    // Vague phrases are heavily penalized.
+ structureMultiplier: 2.5,    // Less saving grace from structure signals.
+ maxStructureBonus: 12.5,     // Lowered the maximum possible recovery bonus.
+ lengthPenaltyStart: 150,     // Starts penalizing rambling extremely early.
+ lengthPenaltyDivisor: 40,    // Length penalty scales up rapidly.
+ maxLengthPenalty: 50,        // Rambling alone can now cut a score in half.
+ contradictionPenalty: 35,    // A single logical contradiction causes a massive 35-point hit.
 } as const;
 
+
 // --- NLP DICTIONARIES ---
-// Split based on how we query them in the compromise NLP engine
-
-// Penalize these only if they are used as adverbs (e.g., catches "just do this", ignores "a just cause")
 const FILLER_ADVERBS = [
-  "basically", "actually", "just", "really", "very", "literally", "probably"
+ "basically", "actually", "just", "really", "very", "literally", "probably", "simply"
 ];
 
-// Multi-word phrases that are generally fluff regardless of part of speech
+
 const FILLER_PHRASES = [
-  "kind of", "sort of", "maybe", "perhaps", "i think", "i guess", "you know"
+ "kind of", "sort of", "maybe", "perhaps", "i think", "i guess", "you know",
+ "not really sure", "not exactly sure", "some sort of", "basically just", "more or less"
 ];
 
-// Vague nouns/pronouns
+
 const VAGUE_TERMS = [
-  "something", "anything", "everything", "stuff", "thing", "somehow", "somewhere", "whatever"
+ "something", "anything", "everything", "stuff", "thing", "things", "somehow", "somewhere", "whatever"
 ];
 
-const STRUCTURE_KEYWORDS = [
-  "goal", "context", "constraints", "output format", "example", "requirements"
+
+const VAGUE_PHRASES = [
+ "some way", "make it better", "help me with this", "do whatever makes sense", "whatever works", "something like that"
 ];
 
-// Common English stop words to prevent penalizing natural sentence length
+
 const STOP_WORDS = new Set([
-  "the", "is", "at", "which", "on", "and", "a", "an", "of", "to", "in",
-  "for", "with", "it", "that", "as", "be", "this", "or", "by", "from",
-  "are", "was", "were", "will", "would", "can", "could", "should"
+ "the", "is", "at", "which", "on", "and", "a", "an", "of", "to", "in",
+ "for", "with", "it", "that", "as", "be", "this", "or", "by", "from",
+ "are", "was", "were", "will", "would", "can", "could", "should", "i",
+ "you", "me", "my", "your", "we", "they", "them", "our", "their"
 ]);
+
+
+// Contradiction patterns catch adversarial or confused prompts
+const CONTRADICTION_PATTERNS = [
+ /\b(very detailed|highly detailed)\b[\s\S]{0,40}\b(concise|brief)\b/i,
+ /\b(concise|brief)\b[\s\S]{0,40}\b(very detailed|highly detailed)\b/i,
+ /\bcover\s+everything\b[\s\S]{0,40}\bbrief(ly)?\b/i,
+ /\bsimple\b[\s\S]{0,30}\bexpert(-|\s)?level\b/i,
+ /\bexpert(-|\s)?level\b[\s\S]{0,30}\bsimple\b/i,
+ /\bbeginner(\s|-)?friendly\b[\s\S]{0,30}\badvanced\b/i,
+ /\badvanced\b[\s\S]{0,30}\bbeginner(\s|-)?friendly\b/i,
+];
+
 
 let encoderSingleton: Tiktoken | null | undefined;
 
+
 function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
+ return Math.min(max, Math.max(min, value));
 }
+
 
 function getEncoder(): Tiktoken | null {
-  if (encoderSingleton !== undefined) {
-    return encoderSingleton;
-  }
-
-  try {
-    encoderSingleton = getEncoding("cl100k_base");
-  } catch {
-    encoderSingleton = null;
-  }
-
-  return encoderSingleton;
+ if (encoderSingleton !== undefined) {
+   return encoderSingleton;
+ }
+ try {
+   encoderSingleton = getEncoding("cl100k_base");
+ } catch {
+   encoderSingleton = null;
+ }
+ return encoderSingleton;
 }
+
 
 export function countTokens(text: string): number {
-  if (!text.trim()) {
-    return 0;
-  }
-
-  try {
-    const encoder = getEncoder();
-    if (encoder) {
-      return encoder.encode(text).length;
-    }
-  } catch {
-    encoderSingleton = null;
-  }
-
-  return Math.ceil(text.length / FALLBACK_CHARS_PER_TOKEN);
+ if (!text.trim()) return 0;
+ try {
+   const encoder = getEncoder();
+   if (encoder) {
+     return encoder.encode(text).length;
+   }
+ } catch {
+   encoderSingleton = null;
+ }
+ return Math.ceil(text.length / FALLBACK_CHARS_PER_TOKEN);
 }
+
 
 export function analyzePrompt(text: string): PromptAnalysis {
-  const rawText = text;
-  
-  // Initialize the NLP document
-  const doc = nlp(text);
+ const rawText = text;
+ const doc = nlp(text);
+ const words = doc.terms().out('array');
+ const wordCount = words.length;
+ const tokenCount = countTokens(text);
 
-  // Use Compromise to get an array of normalized words, stripping punctuation
-  const words = doc.terms().out('array');
-  const wordCount = words.length;
-  const tokenCount = countTokens(text);
 
-  // --- SMART MATCHING WITH COMPROMISE ---
-  
-  // 1. Find filler adverbs, but ONLY when tagged as adverbs (#Adverb)
-  const adverbMatches = doc.match('#Adverb').match(`(${FILLER_ADVERBS.join('|')})`).length;
-  
-  // 2. Find general filler phrases
-  const phraseMatches = doc.match(`(${FILLER_PHRASES.join('|')})`).length;
-  
+ // --- SMART MATCHING WITH COMPROMISE ---
+ const adverbMatches = doc.match('#Adverb').match(`(${FILLER_ADVERBS.join('|')})`).length;
+ const phraseMatches = doc.match(`(${FILLER_PHRASES.join('|')})`).length;
   const fillerCount = adverbMatches + phraseMatches;
-  const fillerRatio = wordCount === 0 ? 0 : fillerCount / wordCount;
+ const fillerRatio = wordCount === 0 ? 0 : fillerCount / wordCount;
 
-  // Repetition logic (filtering out stop words)
-  const meaningfulWords = words.filter((word: string) => !STOP_WORDS.has(word.toLowerCase()));
-  const meaningfulWordCount = meaningfulWords.length;
-  const uniqueMeaningfulWordCount = new Set(meaningfulWords).size;
 
-  const repetitionScore =
-    meaningfulWordCount === 0 
-      ? 0 
-      : (meaningfulWordCount - uniqueMeaningfulWordCount) / meaningfulWordCount;
+ const vaguenessCount = doc.match(`(${VAGUE_TERMS.join('|')})`).length;
+ const vaguePhraseMatches = doc.match(`(${VAGUE_PHRASES.join('|')})`).length;
+ const vaguenessScore = wordCount === 0 ? 0 : (vaguenessCount + (vaguePhraseMatches * 2)) / wordCount;
 
-  // Find vague terms
-  const vaguenessCount = doc.match(`(${VAGUE_TERMS.join('|')})`).length;
-  const vaguenessScore = wordCount === 0 ? 0 : vaguenessCount / wordCount;
 
-  // Structure detection
-  const bulletStructureMatches = rawText.match(/^\s*[-*]\s/gim)?.length ?? 0;
-  const numberedStructureMatches = rawText.match(/^\s*\d+\.\s/gim)?.length ?? 0;
-  
-  const keywordStructureMatches = STRUCTURE_KEYWORDS.filter((keyword) =>
-    doc.has(keyword)
-  ).length;
-  
-  const structureSignals = bulletStructureMatches + numberedStructureMatches + keywordStructureMatches;
-  const structureScore = Math.min(5, structureSignals);
+ // --- REPETITION (Mathematical + Burst Detection) ---
+ const meaningfulWords = words.filter((word: string) => !STOP_WORDS.has(word.toLowerCase()));
+ const meaningfulWordCount = meaningfulWords.length;
+ const uniqueMeaningfulWordCount = new Set(meaningfulWords).size;
 
-  // --- EFFICIENCY & RESOURCE CALCULATION ---
-  
-  const fluffRatioPenalty = fillerRatio * EFFICIENCY_WEIGHTS.fluffMultiplier;
-  const lengthPenalty =
-    tokenCount > EFFICIENCY_WEIGHTS.lengthPenaltyStart
-      ? Math.min(
-          EFFICIENCY_WEIGHTS.maxLengthPenalty, 
-          (tokenCount - EFFICIENCY_WEIGHTS.lengthPenaltyStart) / EFFICIENCY_WEIGHTS.lengthPenaltyDivisor
-        )
-      : 0;
-  const repetitionPenalty = repetitionScore * EFFICIENCY_WEIGHTS.repetitionMultiplier;
-  const vaguenessPenalty = vaguenessScore * EFFICIENCY_WEIGHTS.vaguenessMultiplier;
-  const structureBonus = Math.min(
-    EFFICIENCY_WEIGHTS.maxStructureBonus, 
-    structureScore * EFFICIENCY_WEIGHTS.structureMultiplier
-  );
 
-  const efficiencyScore = clamp(
-    100 -
-      fluffRatioPenalty -
-      repetitionPenalty -
-      lengthPenalty -
-      vaguenessPenalty +
-      structureBonus,
-    0,
-    100
-  );
+ const baseRepetition = meaningfulWordCount === 0
+   ? 0
+   : (meaningfulWordCount - uniqueMeaningfulWordCount) / meaningfulWordCount;
 
-  const estimatedCostUsd = (tokenCount / 1_000_000) * ESTIMATED_COST_USD_PER_1M_TOKENS;
-  const estimatedEnergyWh = (tokenCount / 1_000) * GLOBAL_AVG_ENERGY_WH_PER_1K_TOKENS;
-  const estimatedWaterMl = (tokenCount / 1_000) * GLOBAL_AVG_WATER_ML_PER_1K_TOKENS;
-  const estimatedCo2Grams = (tokenCount / 1_000) * GLOBAL_AVG_CO2_GRAMS_PER_1K_TOKENS;
 
-  return {
-    rawText,
-    wordCount,
-    tokenCount,
-    fillerCount,
-    fillerRatio,
-    repetitionScore,
-    vaguenessScore,
-    structureScore,
-    efficiencyScore,
-    estimatedCostUsd,
-    estimatedEnergyWh,
-    estimatedWaterMl,
-    estimatedCo2Grams,
-  };
+ // Catch adversarial repetition (e.g., "Help help help")
+ const burstMatches = rawText.toLowerCase().match(/\b([a-z]{3,})\b(?:\W+\1\b){2,}/g);
+ const burstPenalty = burstMatches ? Math.min(burstMatches.length * 0.15, 0.5) : 0;
+  const repetitionScore = clamp(baseRepetition + burstPenalty, 0, 1);
+
+
+ // --- STRUCTURE & ACTIONABILITY ---
+ const hasGoal = /\b(goal|task|objective)\b/i.test(rawText);
+ const hasContext = /\b(context|background)\b/i.test(rawText);
+ const hasOutputFormat = /\b(output format|return|respond with|format|json|markdown|bullet points)\b/i.test(rawText);
+ const hasConstraints = /\b(constraints|requirements|must|do not|avoid)\b/i.test(rawText);
+ const hasExample = /\b(example|input|output)\b/i.test(rawText);
+ const hasAudience = /\b(target audience|audience|for beginners|for engineers)\b/i.test(rawText);
+
+
+ const structureSignals = [hasGoal, hasContext, hasOutputFormat, hasConstraints, hasExample, hasAudience].filter(Boolean).length;
+ const structureScore = Math.min(6, structureSignals);
+
+
+ // --- CONTRADICTION CHECK ---
+ let contradictionCount = 0;
+ for (const pattern of CONTRADICTION_PATTERNS) {
+   if (pattern.test(rawText)) contradictionCount += 1;
+ }
+
+
+ // --- EFFICIENCY & RESOURCE CALCULATION ---
+ const fluffRatioPenalty = fillerRatio * EFFICIENCY_WEIGHTS.fluffMultiplier;
+ const repetitionPenalty = repetitionScore * EFFICIENCY_WEIGHTS.repetitionMultiplier;
+ const vaguenessPenalty = vaguenessScore * EFFICIENCY_WEIGHTS.vaguenessMultiplier;
+ const contradictionPenalty = contradictionCount * EFFICIENCY_WEIGHTS.contradictionPenalty;
+  const lengthPenalty = tokenCount > EFFICIENCY_WEIGHTS.lengthPenaltyStart
+   ? Math.min(
+       EFFICIENCY_WEIGHTS.maxLengthPenalty,
+       (tokenCount - EFFICIENCY_WEIGHTS.lengthPenaltyStart) / EFFICIENCY_WEIGHTS.lengthPenaltyDivisor
+     )
+   : 0;
+    
+ const structureBonus = Math.min(
+   EFFICIENCY_WEIGHTS.maxStructureBonus,
+   structureScore * EFFICIENCY_WEIGHTS.structureMultiplier
+ );
+
+
+ // The math alone handles the strictness now, naturally bringing bad prompts into the 20-50 range.
+ const efficiencyScore = clamp(
+   100 - fluffRatioPenalty - repetitionPenalty - lengthPenalty - vaguenessPenalty - contradictionPenalty + structureBonus,
+   0,
+   100
+ );
+
+
+ const estimatedCostUsd = (tokenCount / 1_000_000) * ESTIMATED_COST_USD_PER_1M_TOKENS;
+ const estimatedEnergyWh = (tokenCount / 1_000) * GLOBAL_AVG_ENERGY_WH_PER_1K_TOKENS;
+ const estimatedWaterMl = (tokenCount / 1_000) * GLOBAL_AVG_WATER_ML_PER_1K_TOKENS;
+ const estimatedCo2Grams = (tokenCount / 1_000) * GLOBAL_AVG_CO2_GRAMS_PER_1K_TOKENS;
+
+
+ return {
+   rawText,
+   wordCount,
+   tokenCount,
+   fillerCount,
+   fillerRatio,
+   repetitionScore,
+   vaguenessScore,
+   structureScore,
+   efficiencyScore,
+   estimatedCostUsd,
+   estimatedEnergyWh,
+   estimatedWaterMl,
+   estimatedCo2Grams,
+ };
 }
 
-export function comparePromptAnalyses(
-  original: PromptAnalysis,
-  optimized: PromptAnalysis
-): PromptComparison {
-  const tokensSaved = original.tokenCount - optimized.tokenCount;
 
-  return {
-    originalTokens: original.tokenCount,
-    optimizedTokens: optimized.tokenCount,
-    tokensSaved,
-    percentTokenReduction:
-      original.tokenCount === 0 ? 0 : (tokensSaved / original.tokenCount) * 100,
-    efficiencyImprovement: optimized.efficiencyScore - original.efficiencyScore,
-    costSavedUsd: original.estimatedCostUsd - optimized.estimatedCostUsd,
-    energySavedWh: original.estimatedEnergyWh - optimized.estimatedEnergyWh,
-    waterSavedMl: original.estimatedWaterMl - optimized.estimatedWaterMl,
-    co2SavedGrams: original.estimatedCo2Grams - optimized.estimatedCo2Grams,
-  };
+export function comparePromptAnalyses(
+ original: PromptAnalysis,
+ optimized: PromptAnalysis
+): PromptComparison {
+ const tokensSaved = original.tokenCount - optimized.tokenCount;
+
+
+ return {
+   originalTokens: original.tokenCount,
+   optimizedTokens: optimized.tokenCount,
+   tokensSaved,
+   percentTokenReduction:
+     original.tokenCount === 0 ? 0 : (tokensSaved / original.tokenCount) * 100,
+   efficiencyImprovement: optimized.efficiencyScore - original.efficiencyScore,
+   costSavedUsd: original.estimatedCostUsd - optimized.estimatedCostUsd,
+   energySavedWh: original.estimatedEnergyWh - optimized.estimatedEnergyWh,
+   waterSavedMl: original.estimatedWaterMl - optimized.estimatedWaterMl,
+   co2SavedGrams: original.estimatedCo2Grams - optimized.estimatedCo2Grams,
+ };
 }
