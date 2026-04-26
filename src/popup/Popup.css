@@ -1,6 +1,5 @@
 .popup-root {
   width: 350px;
-  min-height: 420px;
   box-sizing: border-box;
   padding: 14px;
   display: flex;
@@ -8,7 +7,6 @@
   gap: 10px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: #111827;
-  background: #f9fafb;
   transition: width 250ms ease;
   overflow: hidden;
 }
@@ -28,9 +26,21 @@
   font-size: 0.88rem;
 }
 
+.popup-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.popup-icon {
+  width: 50px;
+  height: 50px;
+}
+
 .popup-root label {
   font-size: 0.86rem;
   font-weight: 600;
+  margin-top: 5px;
 }
 
 .popup-root textarea {
@@ -42,12 +52,13 @@
   padding: 10px;
   font-size: 0.9rem;
   line-height: 1.35;
-  background: #ffffff;
+  background: #fafafa;
+  outline: 3px solid #fff;
 }
 
 .popup-root textarea:focus {
-  outline: 2px solid #bfdbfe;
-  border-color: #2563eb;
+  outline: 3px solid #eee;
+  transition: 0.1s;
 }
 
 .popup-root button {
@@ -88,6 +99,8 @@
   opacity: 0;
   pointer-events: none;
   overflow: hidden;
+  border-left: 1px solid #eee;
+  padding-left: 10px;
   transition: flex-basis 250ms ease, opacity 200ms ease 100ms;
 }
 
@@ -145,8 +158,29 @@
   padding: 10px;
 }
 
+.optimized-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.copy-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.copy-button {
+  padding: 5px;
+  border-radius: 10px;
+  width: fit-content;
+  height: fit-content;
+}
+
+.copy-button:hover {
+  background-color: #eee;
+  transition: 0.2s;
+}
+
 .optimized-section h2 {
-  margin: 0 0 8px;
   font-size: 0.9rem;
 }
 
@@ -158,11 +192,43 @@
   color: #1f2937;
 }
 
+.optimized-text {
+  font-size: 0.9rem;
+  font-family: "Courier New", Courier, monospace;
+}
+
 .result-metrics {
+  display: flex;
+  gap: 15px;
   font-size: 0.85rem;
-  line-height: 1.5;
-  background: #ffffff;
-  padding: 8px;
-  border: 1px solid #e5e7eb;
+  background: #cae2fd;
+  padding: 8px 8px 18px 8px;
   border-radius: 8px;
+}
+
+.result-metrics div {
+  width: 100%;
+}
+
+.water-icon {
+  width: 80px;
+  height: 80px;
+}
+
+.result-metrics-main {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.result-metrics-main h1 {
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+.result-metrics-main span {
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1;
+  margin: 0;
 }
