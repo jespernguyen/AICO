@@ -3,6 +3,7 @@ import { useAnalysis } from "../hooks/useAnalysis";
 import { useStorage } from "../hooks/useStorage";
 import { optimizePrompt } from "../utils/ai";
 import { analyzePrompt } from "../utils/metrics";
+import { quickTrim } from "../utils/quickTrim";
 import type { PromptAnalysis, PromptComparison } from "../types/analysis";
 
 // #region agent log
@@ -70,6 +71,16 @@ export default function Popup() {
     }),
   }).catch(() => {});
   // #endregion
+
+  const handleQuickTrim = () => {
+    if (!canOptimize) {
+      return;
+    }
+    setPromptText((current) => quickTrim(current));
+    setStatusMessage("Quick trim applied locally.");
+    setUiError(null);
+    setTokenWarning(null);
+  };
 
   const handleOptimize = async () => {
     if (!canOptimize) {
@@ -251,10 +262,19 @@ export default function Popup() {
 
           <button
             type="button"
+            className="popup-button-secondary"
+            onClick={handleQuickTrim}
+            disabled={!canOptimize || isBusy}
+          >
+            Quick Trim
+          </button>
+
+          <button
+            type="button"
             onClick={handleOptimize}
             disabled={!canOptimize || isBusy}
           >
-            {isBusy ? "Optimizing..." : "Optimize"}
+            {isBusy ? "Optimizing..." : "Optimize (API)"}
           </button>
 
           {tokenWarning && <p className="popup-warning">{tokenWarning}</p>}

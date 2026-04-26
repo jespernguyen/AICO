@@ -5,7 +5,7 @@ const GEMINI_API_URL =
  "https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent";
 
 
- const OPTIMIZER_SYSTEM_PROMPT = `Optimize prompts for LLM clarity and brevity. Preserve intent/tone exactly. Do not invent details. Remove filler, repetition, and ambiguity. Keep output minimal; add structure only if needed. Return only the optimized prompt, no markdown or commentary.`;
+export const OPTIMIZER_SYSTEM_PROMPT = `Optimize prompts for LLM clarity and brevity. Preserve intent/tone exactly. Do not invent details. Remove filler, repetition, and ambiguity. Keep output minimal; add structure only if needed. Return only the optimized prompt, no markdown or commentary.`;
 
 
 function stripCodeFences(text: string): string {
