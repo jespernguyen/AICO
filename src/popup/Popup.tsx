@@ -37,6 +37,7 @@ export default function Popup() {
   } | null>(null);
   const [uiError, setUiError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [tokenWarning, setTokenWarning] = useState<string | null>(null);
   const [optimizing, setOptimizing] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -83,6 +84,7 @@ export default function Popup() {
     setCopied(false);
     setUiError(null);
     setStatusMessage(null);
+    setTokenWarning(null);
 
     // #region agent log
     fetch("http://127.0.0.1:7827/ingest/8e464713-5bad-45a3-86cc-936ff08489fe", {
@@ -110,6 +112,11 @@ export default function Popup() {
 
       if (comparisonBundle) {
         setComparisonBundle(comparisonBundle);
+        if (comparisonBundle.comparison.tokensSaved < 0) {
+          setTokenWarning(
+            `Your original prompt uses fewer tokens (${comparisonBundle.comparison.originalTokens} vs ${comparisonBundle.comparison.optimizedTokens}). Consider keeping the original.`
+          );
+        }
         await saveRecord({
           id: crypto.randomUUID(),
           createdAt: Date.now(),
@@ -238,6 +245,7 @@ export default function Popup() {
             {isBusy ? "Optimizing..." : "Optimize"}
           </button>
 
+          {tokenWarning && <p className="popup-warning">{tokenWarning}</p>}
           {combinedError && <p className="popup-error">{combinedError}</p>}
         </section>
 

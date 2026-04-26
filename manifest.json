@@ -3,11 +3,15 @@
   "name": "AICO",
   "version": "1.0.0",
   "description": "Analyze and optimize AI prompts.",
-  "permissions": ["storage"],
+  "permissions": ["storage", "contextMenus"],
   "action": {
     "default_popup": "src/popup/index.html"
   },
   "options_page": "src/options/index.html",
+  "background": {
+    "service_worker": "service-worker-loader.js",
+    "type": "module"
+  },
   "web_accessible_resources": [
     {
       "resources": ["src/dashboard/index.html"],

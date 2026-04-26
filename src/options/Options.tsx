@@ -79,10 +79,23 @@ export default function Options() {
         ? "status status--error"
         : "status";
 
+  const openDashboard = () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL("src/dashboard/index.html") });
+  };
+
   return (
     <main className="options-page">
       <section className="options-card" aria-labelledby="settings-title">
-        <h1 id="settings-title">AICO Settings</h1>
+        <div className="options-header">
+          <h1 id="settings-title">AICO Settings</h1>
+          <button
+            type="button"
+            className="button button-secondary"
+            onClick={openDashboard}
+          >
+            Open Dashboard
+          </button>
+        </div>
         <p className="options-description">
           Add your Gemini API key so AICO can optimize prompts. The key is masked
           in this form and stored in your browser using Chrome extension storage.

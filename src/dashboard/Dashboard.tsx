@@ -42,7 +42,7 @@ export default function Dashboard() {
     accumulator.savedWater += record.comparison.waterSavedMl;
     accumulator.savedEnergy += record.comparison.energySavedWh;
     return accumulator;
-  }, EMPTY_TOTALS);
+  }, { ...EMPTY_TOTALS });
 
   const handleClearData = async () => {
     const confirmed = window.confirm("Clear all stored analysis records?");
