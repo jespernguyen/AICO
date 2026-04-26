@@ -113,18 +113,9 @@ export default function EnvironmentalImpactSection({
 
   return (
     <section className="dashboard-section">
-      <div className="env-header-row">
-        <h2>Environmental Impact</h2>
-        <button
-          type="button"
-          className="env-reset-button"
-          onClick={onResetSession}
-          disabled={optimizationHistory.length === 0}
-        >
-          Reset session
-        </button>
-      </div>
-
+      <h2>Overall Environmental Impact</h2>
+      <hr className="line" />
+      <p className="env-desc">AICO requires small costs to optimize your prompts. The metrics below account for this to display the net CO2, water, and energy saved. The graph shows the metric you would have used without optimizations vs the metric you did use with your improved prompts.</p>
       <div className="env-section-grid">
         <div className="env-net-stack">
           <article className="stat-card stat-card--saved">
