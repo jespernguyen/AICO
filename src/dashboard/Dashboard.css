@@ -142,6 +142,18 @@
   background-color: #f0fff3;
 }
 
+.stat-card--net {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 0;
+  border-left: 6px solid #2563eb;
+  border-top: 0;
+  border-bottom: 0;
+  border-right: 0;
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  background-image: linear-gradient(to right, #adc8f6, transparent);
+}
+
 .stat-label {
   margin: 0 0 8px;
   color: #4b5563;
