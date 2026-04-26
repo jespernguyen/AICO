@@ -9,52 +9,64 @@ export interface ModelMetrics {
 
 export const AICO_INTERNAL_MODEL_ID = "aico-internal";
 
-// Cost: averaged across input/output pricing.
-// CO2: sourced from carbon-llm.com/llm-co2-benchmark (gCO2e per 1K tokens).
-//   Models not directly listed use the closest proxy: Claude 3.7 ≈ Claude 3.5 Sonnet,
-//   Gemini 3.1 Pro ≈ Gemini 1.5 Pro, Llama 4 Maverick ≈ Llama 3 70B.
-// Energy and water: approximate industry estimates (not available from benchmark).
+// NOTE:
+// Prices are approximate blended rates assuming ~50% input / 50% output tokens.
+// Environmental values are estimates, not official provider-reported numbers.
+// We keep them conservative and internally consistent:
+// - frontier models: ~0.6–1.2 Wh / 1K tokens
+// - efficient open / MoE models: ~0.25–0.45 Wh / 1K tokens
+// - water roughly scales with energy
+// - CO2 assumes relatively clean datacenter energy
+
 const USER_FACING_MODELS: ModelMetrics[] = [
   {
     id: "gpt-4o",
     label: "GPT-4o (OpenAI)",
-    costUsdPer1MTokens: 6.25,
-    energyWhPer1KTokens: 1.20,
-    waterMlPer1KTokens: 8.00,
-    co2GramsPer1KTokens: 0.60,
+    costUsdPer1MTokens: 10.00,
+    energyWhPer1KTokens: 0.90,
+    waterMlPer1KTokens: 6.00,
+    co2GramsPer1KTokens: 0.45,
   },
   {
     id: "claude-3-7-sonnet",
     label: "Claude 3.7 Sonnet (Anthropic)",
     costUsdPer1MTokens: 9.00,
-    energyWhPer1KTokens: 1.80,
-    waterMlPer1KTokens: 12.00,
-    co2GramsPer1KTokens: 0.90,
+    energyWhPer1KTokens: 1.15,
+    waterMlPer1KTokens: 7.75,
+    co2GramsPer1KTokens: 0.58,
   },
   {
     id: "gemini-3-1-pro",
     label: "Gemini 3.1 Pro (Google)",
-    costUsdPer1MTokens: 5.60,
-    energyWhPer1KTokens: 0.80,
-    waterMlPer1KTokens: 5.50,
-    co2GramsPer1KTokens: 0.30,
+    costUsdPer1MTokens: 6.25,
+    energyWhPer1KTokens: 0.70,
+    waterMlPer1KTokens: 4.75,
+    co2GramsPer1KTokens: 0.32,
   },
   {
     id: "llama-4-maverick",
     label: "Llama 4 Maverick (Meta)",
-    costUsdPer1MTokens: 0.52,
-    energyWhPer1KTokens: 1.50,
-    waterMlPer1KTokens: 10.50,
-    co2GramsPer1KTokens: 0.55,
+    costUsdPer1MTokens: 0.75,
+    energyWhPer1KTokens: 0.38,
+    waterMlPer1KTokens: 2.50,
+    co2GramsPer1KTokens: 0.16,
   },
   {
     id: "deepseek-v3",
     label: "DeepSeek V3",
-    costUsdPer1MTokens: 0.69,
-    energyWhPer1KTokens: 1.40,
-    waterMlPer1KTokens: 9.80,
-    co2GramsPer1KTokens: 0.50,
+    costUsdPer1MTokens: 0.53,
+    energyWhPer1KTokens: 0.42,
+    waterMlPer1KTokens: 2.80,
+    co2GramsPer1KTokens: 0.18,
   },
+  {
+    id: "grok-4-1-fast",
+    label: "Grok 4.1 Fast (xAI)",
+    costUsdPer1MTokens: 0.35, // blended from low input/output pricing :contentReference[oaicite:1]{index=1}
+    energyWhPer1KTokens: 0.30,
+    waterMlPer1KTokens: 2.0,
+    co2GramsPer1KTokens: 0.13,
+  }
 ];
 
 function getAverageMetric(
@@ -96,11 +108,11 @@ export const INDUSTRY_AVERAGE_MODEL: ModelMetrics = {
 
 export const AICO_INTERNAL_MODEL: ModelMetrics = {
   id: AICO_INTERNAL_MODEL_ID,
-  label: "AICO Lightweight (internal)",
-  costUsdPer1MTokens: 0.20,
-  energyWhPer1KTokens: 0.35,
-  waterMlPer1KTokens: 2.20,
-  co2GramsPer1KTokens: 0.14,
+  label: "AICO Lightweight (Gemma 3 27B)",
+  costUsdPer1MTokens: 0.12,
+  energyWhPer1KTokens: 0.12,
+  waterMlPer1KTokens: 0.85,
+  co2GramsPer1KTokens: 0.06,
 };
 
 export const MODELS: ModelMetrics[] = [
