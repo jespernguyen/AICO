@@ -1,6 +1,6 @@
 # AICO — AI Conversation Optimizer
 
-![Alt text](public/mainicon.png)
+![Alt text](public/icons/mainicon.png)
 
 
 A Chrome extension that analyzes and optimizes your AI prompts for clarity, efficiency, and reduced environmental impact. Get better results from AI while spending less — in tokens, cost, CO₂, and water.
