@@ -3,13 +3,13 @@
 ![Alt text](public/icons/mainicon.png)
 
 
-A Chrome extension that analyzes and optimizes your AI prompts for clarity, efficiency, and reduced environmental impact. Get better results from AI while spending less — in tokens, cost, CO₂, and water.
+Every AI prompt has hidden waste: vague wording, repeated context, unnecessary tokens, and invisible energy/cost impact. AICO is a Chrome extension that scores your prompt before you send it, trims waste locally, optionally rewrites it with Gemma 3 27B, and shows estimated tokens, cost, water, energy, and CO2 saved over time.
 
 ## Features
 
 - **Prompt scoring** — detects filler words, vagueness, repetition, structural gaps, and contradictions
-- **Quick Trim** - quickly trim down on filler words without calling Google Gemini
-- **One-click optimization** — rewrites your prompt using Google Gemini
+- **Quick Trim** - quickly trim down on filler words without calling Gemma 3 27B
+- **One-click optimization** — rewrites your prompt using Gemma 3 27B
 - **Per-model metrics** — see real cost, energy, water, and CO₂ estimates for GPT-4o, Claude, Gemini, Llama, DeepSeek, and more
 - **Session dashboard** — tracks your cumulative savings over time
 - **Right-click to optimize** — select text on any page and optimize from the context menu
